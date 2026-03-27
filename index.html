@@ -1,0 +1,561 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClipMaker | Corte Viral</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-1: #07142b;
+            --bg-2: #0f2445;
+            --text: #13233d;
+            --muted: #52657f;
+            --accent: #0f8cff;
+            --ok: #0fa968;
+            --warn: #d8841b;
+            --error: #c53e3e;
+            --shadow: 0 30px 80px rgba(1, 14, 38, 0.35);
+            --radius: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(900px 600px at 10% -5%, #1d4a80 0%, transparent 60%),
+                radial-gradient(900px 600px at 100% 100%, #0b5f59 0%, transparent 55%),
+                linear-gradient(135deg, var(--bg-1), var(--bg-2));
+            color: var(--text);
+            font-family: "DM Sans", sans-serif;
+            padding: 28px 16px;
+            overflow-x: hidden;
+        }
+
+        .glow {
+            position: fixed;
+            width: 380px;
+            height: 380px;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+            animation: drift 10s ease-in-out infinite;
+        }
+
+        .glow.one {
+            background: #1da0ff;
+            top: -120px;
+            left: -120px;
+        }
+
+        .glow.two {
+            background: #00c9a7;
+            bottom: -140px;
+            right: -120px;
+            animation-delay: -3.5s;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            width: min(980px, 100%);
+            background: linear-gradient(130deg, rgba(255, 255, 255, 0.93), rgba(248, 252, 255, 0.82));
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius);
+            backdrop-filter: blur(14px);
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            overflow: hidden;
+            animation: reveal 850ms cubic-bezier(.2,.7,.2,1) both;
+        }
+
+        .hero {
+            padding: 40px 36px;
+            background: linear-gradient(180deg, rgba(15, 140, 255, 0.08), rgba(0, 179, 164, 0.12));
+            border-right: 1px solid rgba(16, 42, 82, 0.09);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #0e5fa6;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 1.9s ease-in-out infinite;
+        }
+
+        h1 {
+            margin: 0;
+            font-family: "Space Grotesk", sans-serif;
+            line-height: 1.07;
+            font-size: clamp(1.8rem, 3.2vw, 2.75rem);
+            letter-spacing: -0.02em;
+            color: #0f2240;
+        }
+
+        .sub {
+            color: var(--muted);
+            margin: 16px 0 0;
+            font-size: 1.04rem;
+            max-width: 44ch;
+        }
+
+        .steps {
+            margin-top: 28px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #2e4669;
+            font-size: 0.95rem;
+            opacity: 0;
+            transform: translateY(8px);
+            animation: stepIn 500ms forwards;
+        }
+
+        .step:nth-child(1) { animation-delay: 180ms; }
+        .step:nth-child(2) { animation-delay: 300ms; }
+        .step:nth-child(3) { animation-delay: 420ms; }
+
+        .step span {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #e6f4ff;
+            color: #0a65b5;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .panel {
+            padding: 32px 30px;
+            display: grid;
+            align-content: start;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.62);
+        }
+
+        .label {
+            font-size: 0.83rem;
+            color: #28466d;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .field {
+            width: 100%;
+            border: 1px solid rgba(18, 56, 108, 0.22);
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 1rem;
+            background: #ffffff;
+            color: #12365f;
+            outline: none;
+            transition: border-color 220ms ease, box-shadow 220ms ease;
+        }
+
+        .field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(15, 140, 255, 0.16);
+        }
+
+        .cta {
+            margin-top: 6px;
+            border: 0;
+            width: 100%;
+            border-radius: 14px;
+            padding: 14px 16px;
+            background: linear-gradient(120deg, #0f8cff, #00a59d);
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            font-size: 0.97rem;
+            cursor: pointer;
+            transition: transform 180ms ease, box-shadow 220ms ease, filter 200ms ease;
+            box-shadow: 0 18px 24px rgba(0, 80, 129, 0.24);
+        }
+
+        .cta:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.03);
+        }
+
+        .cta:active {
+            transform: translateY(0);
+        }
+
+        .status {
+            margin-top: 2px;
+            min-height: 44px;
+            display: grid;
+            align-content: center;
+            gap: 6px;
+        }
+
+        .status strong {
+            color: #102b4e;
+            font-size: 0.95rem;
+            line-height: 1.35;
+        }
+
+        .status small {
+            color: #3f5f86;
+            font-size: 0.82rem;
+        }
+
+        .status[data-tone="ok"] strong { color: var(--ok); }
+        .status[data-tone="warn"] strong { color: var(--warn); }
+        .status[data-tone="error"] strong { color: var(--error); }
+
+        .progress {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: #d9e7f7;
+            overflow: hidden;
+        }
+
+        .progress > i {
+            display: block;
+            width: 14%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(120deg, #0f8cff, #00b3a4);
+            transition: width 350ms ease;
+        }
+
+        .player {
+            width: 100%;
+            border-radius: 16px;
+            margin-top: 6px;
+            background: #e9eef5;
+            border: 1px solid rgba(17, 54, 105, 0.15);
+            display: none;
+        }
+
+        .player.ready {
+            display: block;
+            animation: reveal 650ms ease both;
+        }
+
+        .hint {
+            margin: 4px 0 0;
+            color: #4f6788;
+            font-size: 0.83rem;
+        }
+
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(8px, 16px) scale(1.06); }
+        }
+
+        @keyframes reveal {
+            from { opacity: 0; transform: translateY(14px) scale(0.992); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes stepIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.45); opacity: 0.45; }
+        }
+
+        @media (max-width: 890px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                border-right: 0;
+                border-bottom: 1px solid rgba(16, 42, 82, 0.09);
+                padding: 30px 24px;
+            }
+
+            .panel {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="glow one" aria-hidden="true"></div>
+    <div class="glow two" aria-hidden="true"></div>
+
+    <main class="app">
+        <section class="hero">
+            <div class="eyebrow"><span class="dot"></span> Viral Clip Engine</div>
+            <h1>Transforme qualquer video em um corte pronto para viralizar</h1>
+            <p class="sub">Envie seu video, aguarde a transcricao automatica e receba o trecho mais impactante entre 30 e 60 segundos.</p>
+
+            <div class="steps" aria-label="Fluxo">
+                <div class="step"><span>1</span> Upload rapido e seguro do video original</div>
+                <div class="step"><span>2</span> IA analisa a transcricao para achar o pico de atencao</div>
+                <div class="step"><span>3</span> Player final com o corte viral para publicar</div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <label class="label" for="apiKey">Gemini API Key</label>
+            <input id="apiKey" class="field" type="password" autocomplete="off" placeholder="Cole sua chave da Gemini aqui">
+
+            <button id="uploadWidget" class="cta">Enviar video e gerar corte viral</button>
+
+            <div id="status" class="status" data-tone="warn">
+                <strong>Pronto para comecar.</strong>
+                <small>Insira sua chave e clique no botao para abrir o upload.</small>
+            </div>
+
+            <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+            
+
+            <video id="video" class="player" src="" controls playsinline></video>
+        </section>
+    </main>
+
+    <script src="https://upload-widget.cloudinary.com/latest/global/all.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        const el = {
+            status: document.getElementById("status"),
+            video: document.getElementById("video"),
+            apiKey: document.getElementById("apiKey"),
+            button: document.getElementById("uploadWidget"),
+            progressBar: document.getElementById("progressBar")
+        };
+
+        const setStatus = (tone, title, detail, progress) => {
+            el.status.dataset.tone = tone;
+            el.status.innerHTML = `<strong>${title}</strong><small>${detail}</small>`;
+
+            if (typeof progress === "number") {
+                el.progressBar.style.width = `${Math.max(6, Math.min(100, progress))}%`;
+            }
+        };
+
+        const pickCloudName = () => {
+            return "YOUR CLOUDINARY_CLOUD_NAME"; // Substitua pelo nome da sua nuvem Cloudinary
+        };
+
+        const pickPreset = () => {
+            return "YOUR CLOUDINARY_UPLOAD_PRESET"; // Substitua pelo nome do seu upload preset configurado no Cloudinary
+        };
+
+        const config = {
+            cloudName: pickCloudName(),
+            uploadPreset: pickPreset()
+        };
+
+        const app = {
+            transcriptionURL: "",
+            public_id: "",
+
+            waitForTranscription: async () => {
+                const maxAttempts = 30;
+                const delay = 2000;
+
+                for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                    const url = `https://res.cloudinary.com/${config.cloudName}/raw/upload/v${Date.now()}/${app.public_id}.transcript`;
+
+                    try {
+                        setStatus("warn", "Procurando transcricao...", `Tentativa ${attempt} de ${maxAttempts}`, 22 + attempt * 2);
+                        const response = await fetch(url);
+
+                        if (response.ok) {
+                            app.transcriptionURL = url;
+                            setStatus("ok", "Transcricao encontrada.", "Analisando o melhor momento viral com IA...", 72);
+                            return true;
+                        }
+                    } catch (error) {
+                        console.log(`Tentativa ${attempt} falhou:`, error.message);
+                    }
+
+                    if (attempt < maxAttempts) {
+                        await new Promise((resolve) => setTimeout(resolve, delay));
+                    }
+                }
+
+                setStatus("error", "Nao foi possivel localizar a transcricao.", "Tente novamente com outro arquivo ou verifique o preset.", 100);
+                return false;
+            },
+
+            getTranscription: async () => {
+                const response = await fetch(app.transcriptionURL);
+                return response.text();
+            },
+
+            getViralMoment: async () => {
+                const maxAttempts = 3;
+                const delay = 1000;
+
+                for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                    try {
+                        const transcription = await app.getTranscription();
+                        const models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+
+                        const prompt = `
+Role: You are a professional video editor specializing in viral content.
+Task: Analyze the transcription below and identify the most engaging, funny, or surprising segment.
+Constraints:
+1. Duration: Minimum 30 seconds, Maximum 60 seconds.
+2. Format: Return ONLY the start and end string for Cloudinary. Format: so_<start_seconds>,eo_<end_seconds>
+3. Examples: "so_10,eo_20" or "so_12.5,eo_45.2"
+4. CRITICAL: Do not use markdown, do not use quotes, do not explain. Return ONLY the raw string.
+
+Transcription:
+${transcription}
+                        `;
+
+                        const headers = {
+                            "Content-Type": "application/json"
+                        };
+
+                        const contents = [
+                            {
+                                parts: [
+                                    {
+                                        text: prompt
+                                    }
+                                ]
+                            }
+                        ];
+
+                        let data = null;
+                        let lastModelError = "";
+
+                        for (const model of models) {
+                            const endpointGemini = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(el.apiKey.value.trim())}`;
+                            const response = await fetch(endpointGemini, {
+                                method: "POST",
+                                headers,
+                                body: JSON.stringify({ contents })
+                            });
+
+                            if (response.ok) {
+                                data = await response.json();
+                                break;
+                            }
+
+                            const errorPayload = await response.text();
+
+                            if (response.status === 404) {
+                                lastModelError = `Modelo ${model} indisponivel para generateContent.`;
+                                continue;
+                            }
+
+                            throw new Error(`Erro Gemini ${response.status}: ${errorPayload || response.statusText}`);
+                        }
+
+                        if (!data) {
+                            throw new Error(lastModelError || "Nenhum modelo Gemini disponivel no momento.");
+                        }
+
+                        setStatus("ok", "Momento viral identificado.", "Renderizando o corte final no player...", 92);
+                        return data;
+                    } catch (error) {
+                        console.log(`Tentativa ${attempt}/${maxAttempts} falhou:`, error.message);
+
+                        if (attempt < maxAttempts) {
+                            await new Promise((resolve) => setTimeout(resolve, delay));
+                        } else {
+                            throw error;
+                        }
+                    }
+                }
+
+                throw new Error("Falha ao identificar o momento viral.");
+            }
+        };
+
+        const myWidget = cloudinary.createUploadWidget(config, async (error, result) => {
+            if (error) {
+                setStatus("error", "Falha no upload.", "Revise o arquivo e tente novamente.", 100);
+                return;
+            }
+
+            if (!result || result.event !== "success") {
+                return;
+            }
+
+            setStatus("warn", "Upload concluido.", "Aguardando arquivo de transcricao...", 20);
+            app.public_id = result.info.public_id;
+            el.video.classList.remove("ready");
+            el.video.removeAttribute("src");
+
+            try {
+                const isReady = await app.waitForTranscription();
+
+                if (!isReady) {
+                    throw new Error("Erro ao buscar transcricao");
+                }
+
+                const response = await app.getViralMoment();
+                const viralMomentRaw = response?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+                const match = viralMomentRaw.match(/so_[0-9]+(?:\.[0-9]+)?,eo_[0-9]+(?:\.[0-9]+)?/i);
+                const viralMoment = match ? match[0] : "";
+
+                if (!viralMoment) {
+                    throw new Error("Resposta da IA fora do formato esperado.");
+                }
+
+                const viralMomentURL = `https://res.cloudinary.com/${config.cloudName}/video/upload/${viralMoment}/${app.public_id}.mp4`;
+                el.video.setAttribute("src", viralMomentURL);
+                el.video.classList.add("ready");
+                setStatus("ok", "Seu corte viral esta pronto.", "Player carregado com sucesso.", 100);
+            } catch (err) {
+                setStatus("error", "Falha ao gerar o corte viral.", "Confira sua API Key e tente novamente.", 100);
+                console.log({ err });
+            }
+        });
+
+        el.button.addEventListener("click", () => {
+            const key = el.apiKey.value.trim();
+
+            if (!key) {
+                alert("Por favor, insira sua API do GEMINI primeiro");
+                el.apiKey.focus();
+                return;
+            }
+
+            if (!key.startsWith("AIza")) {
+                setStatus("error", "API Key em formato invalido.", "A chave da Gemini normalmente comeca com AIza.", 100);
+                el.apiKey.focus();
+                return;
+            }
+
+            setStatus("warn", "Abrindo upload...", "Selecione o video para iniciar o processamento.", 10);
+            myWidget.open();
+        }, false);
+    </script>
+</body>
+</html>
